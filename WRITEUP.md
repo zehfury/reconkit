@@ -1,5 +1,17 @@
-The hardest part was not any single module. It was making sure a failure in one module could not take down the whole run. WHOIS servers time out. DNS queries hit domains with no records. TLS handshakes fail on plain HTTP sites. I did not want one bad lookup to stop the whole scan. So each module returns a result even when it fails, instead of stopping the program. A timeout on WHOIS should not mean losing the DNS and header data that already came back fine.
+# Project Write-Up
+
+## What Was Hardest to Build
+
+The hardest part was not any single module. It was making sure a failure in one module could not take down the whole run. WHOIS servers time out. DNS queries hit domains with no records. TLS handshakes fail on plain HTTP sites.
+
+I did not want one bad lookup to stop the whole scan. So each module returns a result even when it fails, instead of stopping the program. A timeout on WHOIS should not mean losing the DNS and header data that already came back fine.
+
 I tested this by running the tool against a domain that does not exist. Every module returned a clean error result instead of crashing. That test told me more about the design than running it against a working domain did.
+
+## What I Learned About Recon
+
 Running it against example.com showed me things I would not have guessed. The MX record came back as a null record, which means the domain declares upfront that it accepts no mail instead of just leaving the field blank. The site had zero of the six common security headers set. Geolocation on the IP pointed to Cloudflare in Toronto, not to whoever actually owns the site, since the request never reaches past the CDN.
+
 That last part changed how I think about recon data. A geolocation result is not where the organization is. It is where the infrastructure in front of them sits. Same with WHOIS. A registrar can return almost nothing if the domain uses privacy protection, and that absence is itself a data point, not a broken lookup.
+
 Building the tool made the difference between authentication and authorization checks in code review clearer to me too. Writing a module that only reports what a server actually sends, no more, forced me to be precise about what counts as evidence versus what counts as guessing.
